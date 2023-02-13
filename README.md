@@ -370,7 +370,117 @@ shippingservice         ClusterIP   10.97.189.86     <none>        50051/TCP    
 
 # How about Monitoring, Data Visualization, Metrics Collection 
 ## This to see how are microservices are performing. 
-### This is where ISTIO add-ons/integrations come in.See: 
+### This is where ISTIO add-ons/integrations come in. See: https://istio.io/latest/docs/ops/integrations/
+
+Earlier we have downloaded Istio and it comes with a folder called 'samples'. 
+And inside samples we have a folder called add-ons. 
+Those yaml files that you found are actually all the integrations found in the website (grafana, prometheus, etc.,). 
+
+```
+~/istio-1.16.2# ls -lrt
+total 40
+drwxr-xr-x  3 root root  4096 Jan 27 22:59 tools
+drwxr-xr-x 24 root root  4096 Jan 27 22:59 samples  ------>>> 
+-rw-r--r--  1 root root  6595 Jan 27 22:59 README.md
+-rw-r-----  1 root root   925 Jan 27 22:59 manifest.yaml
+drwxr-xr-x  5 root root  4096 Jan 27 22:59 manifests
+-rw-r--r--  1 root root 11348 Jan 27 22:59 LICENSE
+drwxr-x---  2 root root  4096 Jan 27 22:59 bin
+
+# cd samples
+# cd addons
+
+~/istio-1.16.2/samples/addons# ls
+extras  grafana.yaml  jaeger.yaml  kiali.yaml  prometheus.yaml  README.md
+
+```
+
+You can apply all the configuration yaml fles in the 'addons' folder. 
+```
+# cd ..
+# pwd
+/root/istio-1.16.2/samples
+# kubectl apply -f addons/
+serviceaccount/grafana created
+configmap/grafana created
+service/grafana created
+deployment.apps/grafana created
+configmap/istio-grafana-dashboards created
+configmap/istio-services-grafana-dashboards created
+deployment.apps/jaeger created
+service/tracing created
+service/zipkin created
+service/jaeger-collector created
+serviceaccount/kiali created
+configmap/kiali created
+clusterrole.rbac.authorization.k8s.io/kiali-viewer created
+clusterrole.rbac.authorization.k8s.io/kiali created
+clusterrolebinding.rbac.authorization.k8s.io/kiali created
+role.rbac.authorization.k8s.io/kiali-controlplane created
+rolebinding.rbac.authorization.k8s.io/kiali-controlplane created
+service/kiali created
+deployment.apps/kiali created
+serviceaccount/prometheus created
+configmap/prometheus created
+clusterrole.rbac.authorization.k8s.io/prometheus created
+clusterrolebinding.rbac.authorization.k8s.io/prometheus created
+service/prometheus created
+deployment.apps/prometheus created
+```
+
+If we do check the pods from the istio-system namespace (earlier we only have 2 pods running), we will see a lot of pods get created.
+```
+# kubectl get pods -n istio-system
+NAME                                    READY   STATUS    RESTARTS   AGE
+grafana-69f9b6bfdc-m9knm                1/1     Running   0          91s
+istio-ingressgateway-6cf795f577-9mrjd   1/1     Running   0          44m
+istiod-6746dbc8f6-f8c62                 1/1     Running   0          45m
+jaeger-596cbdc8c8-fkr69                 1/1     Running   0          91s
+kiali-5c547b7b74-gxrck                  0/1     Running   0          90s
+prometheus-5f84bbfcfd-l8ghs             2/2     Running   0          90s
+```
+
+And in order to access those pods, let's check the services: 
+```
+# kubectl get svc -n istio-system
+NAME                   TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                      AGE
+grafana                ClusterIP      10.96.140.126    <none>        3000/TCP                                     2m7s
+istio-ingressgateway   LoadBalancer   10.104.192.198   <pending>     15021:31117/TCP,80:31845/TCP,443:31664/TCP   45m
+istiod                 ClusterIP      10.110.224.247   <none>        15010/TCP,15012/TCP,443/TCP,15014/TCP        45m
+jaeger-collector       ClusterIP      10.100.19.112    <none>        14268/TCP,14250/TCP,9411/TCP                 2m6s
+kiali                  ClusterIP      10.110.211.198   <none>        20001/TCP,9090/TCP                           2m6s
+prometheus             ClusterIP      10.103.53.54     <none>        9090/TCP                                     2m6s
+tracing                ClusterIP      10.107.153.156   <none>        80/TCP,16685/TCP                             2m7s
+zipkin                 ClusterIP      10.109.115.205   <none>        9411/TCP                                     2m7s
+```
+
+    grafana: An open-source data visualization and analytics platform that can be used to create dashboards and alerting for your applications.
+
+    istio-ingressgateway: A load balancer service in Istio, which provides ingress routing for incoming traffic to the cluster.
+
+    istiod: The control plane service for Istio, which provides the management and configuration of Istio components.
+
+    jaeger-collector: A service that collects trace data from the Jaeger distributed tracing system.
+
+    kiali: An open-source observability and management platform for Istio service meshes.
+
+    prometheus: An open-source monitoring and alerting platform that can be used to collect and query metrics from your applications.
+
+    tracing: A service that provides tracing and observability for your applications.
+
+    zipkin: An open-source distributed tracing system that can be used to monitor and troubleshoot your applications.
+    
+    
+Let's try to access Kiali (change the ClusterIp to NodePort)
+And access it from your browser, in my case it's http://10.201.10.179:32541
+```
+# kubectl edit svc kiali -n istio-system
+# kubectl get svc kiali -n istio-system
+NAME    TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)                          AGE
+kiali   NodePort   10.110.211.198   <none>        20001:32541/TCP,9090:30564/TCP   9m13s
+```
+
+
 
 
 
